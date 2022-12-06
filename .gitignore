@@ -1,0 +1,7 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+scripts/00_test.R
+scripts/00_renvSnapshot.R
+scripts/00_sessionInfo.R
