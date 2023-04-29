@@ -1,0 +1,1 @@
+Directory for storing intermediate files while using the 01_clean.R script
