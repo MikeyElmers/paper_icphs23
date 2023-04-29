@@ -7,5 +7,4 @@ project:
 
 clean:
 	find output/ -type f -name '*.html' | xargs rm
-	find output/ -type f -name '*.png' | xargs rm
 	find data/final/ -type f -name '*.csv' | xargs rm
