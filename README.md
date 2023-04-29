@@ -27,7 +27,7 @@ The following PINTs are investigated:
 ## Instructions
 1. Clone repository.
    ```bash
-   https://github.com/MikeyElmers/paper_icphs23.git
+   git clone https://github.com/MikeyElmers/paper_icphs23.git
    cd paper_icphs23/
    ```
 2. Rmarkdown documents and the sessionInfo are located in `output/`.
