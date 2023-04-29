@@ -201,6 +201,10 @@ df_listen <- rename(df_listen, condition = Block_Name)
 df_questionnaire <- rename(df_questionnaire, id = Rec_Session_Id)
 df_questionnaire <- rename(df_questionnaire, task = Task_Name)
 df_nns <- left_join(df_listen, df_questionnaire, by = "id")
+
+# write binomial data t oworking before collapsing to single row per id
+write.csv(df_nns, "data/working/data_nns_binom.csv", row.names = FALSE)
+
 df_nns <- unique(df_nns[ , names(df_nns) %in%
                            c("id", "condition", "total_score", "age", "ease",
                              "edu", "imphear", "interest", "L1", "notes", "prep",
@@ -393,6 +397,10 @@ df_listen <- rename(df_listen, condition = Block_Name)
 df_questionnaire <- rename(df_questionnaire, id = Rec_Session_Id)
 df_questionnaire <- rename(df_questionnaire, task = Task_Name)
 df_ns <- left_join(df_listen, df_questionnaire, by = "id")
+
+# write binomial data t oworking before collapsing to single row per id
+write.csv(df_ns, "data/working/data_ns_binom.csv", row.names = FALSE)
+
 df_ns <- unique(df_ns[ , names(df_ns) %in%
                            c("id", "condition", "total_score", "age", "ease",
                              "edu", "imphear", "interest", "L1", "notes", "prep",
@@ -435,16 +443,18 @@ write.csv(df_en, "data/final/data_en.csv", row.names = FALSE)
 ################################################################################
 ################################################################################
 ################################################################################
-# Binomial data
-df_binomial <- df_full[ , !names(df_full) %in%
-                              c("score", "total_score", "task")]
+df_en_binom <- read.csv("data/working/data_ns_binom.csv")
+df_de_binom <- read.csv("data/working/data_nns_binom.csv")
+df_full_binom <- rbind(df_en_binom, df_de_binom)
+df_full_binom <- df_full_binom %>% 
+ select(-score, -total_score, -task)
 
-df_binomial <- df_binomial %>% 
+df_full_binom <- df_full_binom %>% 
   gather(key = "question",
          value = "answer",
          c(q1, q2))
 
-write.csv(df_binomial, "data/working/data_binomial.csv", row.names = FALSE)
+write.csv(df_full_binom, "data/working/data_binomial.csv", row.names = FALSE)
 df_binomial <- read.csv(file = "data/working/data_binomial.csv")
 ################################################################################
 # Add score column
