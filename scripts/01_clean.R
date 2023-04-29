@@ -2,7 +2,7 @@
 ### Info ###
 ############
 #
-# Project: University Lecture Listening Task
+# Project: Pause particles influencing recollection in lectures
 #
 # Conference: 20th International Congress of Phonetic Sciences (ICPhS '23)
 #
