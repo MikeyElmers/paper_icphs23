@@ -2,11 +2,11 @@
 ### Info ###
 ############
 #
-# Project: University Lecture Listening Task
+# Project: Pause particles influencing recollection in lectures
 #
 # Conference: 20th International Congress of Phonetic Sciences (ICPhS '23)
 #
-# Contributors: Mikey Elmers and Jürgen Trouvain
+# Contributors: Mikey Elmers
 #
 # Part 00: Restore project dependencies from lockfile (renv.lock)
 #

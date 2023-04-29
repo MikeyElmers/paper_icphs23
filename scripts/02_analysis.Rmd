@@ -1,0 +1,397 @@
+---
+title: "analysis"
+author: "Mikey Elmers"
+date: "12/06/2022"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r, eval=FALSE, echo=FALSE}
+rmarkdown::render(here::here('scripts/02_analysis.Rmd'),
+                  output_dir = here::here('output/'))
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message=FALSE, echo=FALSE}
+library(dplyr)
+library(ggplot2)
+library(lme4)
+library(lmerTest)
+library(car)
+library(effsize)
+```
+
+## Overview
+This document investigates the influence of pause-internal particles (PINTs) on recall in a content-based listening task with material from an English-language university lecture. The following PINTs are investigated in the present study: silence, inhalation noises, exhalation noises, filler particles, and tongue clicks. Participants were asked to listen to audio recordings that were approximately three minutes in length and answer content-based questions. 90 participants were recruited. 45 participants were monolingual speakers of English. The other 45 participants were native speakers of German with English proficiency. 
+
+Listeners heard a total of four audio segments, each followed by two questions. Participants were scored based on how many questions they got correct with a maximum possible score of 8. Participants were split into three different groups based upon the condition of the audio. Each participant heard only one condition.
+The following conditions are investigated: 
+
+* original condition which includes unmodified audio
+* silence condition where all non-silence PINTs material is replaced with silence (same total duration as original audio)
+* no PINTs condition where all PINTs are excised from the audio (shorter duration than other two condition)
+
+### Yale lectures
+Lectures taken from [Open Yale Courses](https://oyc.yale.edu). 
+
+1. [Langdon Hammer](https://oyc.yale.edu/english/engl-310) 
+    + Course Number: ENGL 310
+    + Course Name: Modern Poetry
+    + Sessions: 25
+  
+## Dataframe codebook
+Variable Name         | Description
+---                   | ---
+id                    | subject id number
+condition             | three different experimental conditions (original, silence, no PINTs)
+total score           | subject's total number of correct answers (max score is 8)
+age                   | subject age (in years)
+ease                  | how easy or difficult the subject found the speaker (1: very difficult to 5: very easy)
+edu                   | subject's education with 3 levels (high school/equivalent, university, and other)
+imphear               | subject's self-assessment of hearing impairment
+interest              | how interesting the subject found the speaker (1: very uninteresting to 5: very interesting)
+L1                    | subject's native language with 2 levels (English or German)
+notes                 | subject's self-assessment of whether they took notes (they were instructed to not take notes)
+prep                  | how prepared the subject rated the speaker (1: very unprepared to 5: very prepared)
+self                  | subject's self-assessment of their English proficiency (applicable for the German speakers)
+test                  | CEFR test for subject (applicable for the L1 German participants)
+
+## Load in data
+```{r}
+df <- read.csv(here::here("data/final/data_full.csv"))
+df_de <- read.csv(here::here("data/final/data_de.csv"))
+df_en <- read.csv(here::here("data/final/data_en.csv"))
+df_binomial_all <- read.csv(here::here("data/final/data_binomial_all.csv"))
+```
+
+One participant from the monolingual English group reported hearing impairment and was removed from the analysis.
+```{r}
+# remove participant with hearing impairment
+df <- df %>% filter(imphear == "no")
+df_en <- df_en %>% filter(imphear == "no")
+df_binomial_all <- df_binomial_all %>% filter(imphear == "no")
+```
+
+Convert variables to factor.
+```{r}
+df$id <- as.factor(df$id)
+df$condition <- as.factor(df$condition)
+df$L1 <- as.factor(df$L1)
+
+df_de$id <- as.factor(df_de$id)
+df_de$condition <- as.factor(df_de$condition)
+df_de$L1 <- as.factor(df_de$L1)
+
+df_en$id <- as.factor(df_en$id)
+df_en$condition <- as.factor(df_en$condition)
+df_en$L1 <- as.factor(df_en$L1)
+```
+
+## All participants
+Mean, median, and standard deviation for total score.
+```{r}
+df %>% 
+  summarize(mean_all = mean(total_score), 
+            median_all = median(total_score), 
+            sd_all = sd(total_score),
+            N = n())
+```
+
+## L1 comparison
+The monolingual English participants have a higher mean total score than the L1 German participants. However, the difference between L1 for mean total score is not significant.
+```{r}
+df %>% 
+  group_by(L1) %>% 
+  summarize(mean = mean(total_score), 
+            median = median(total_score), 
+            sd = sd(total_score), 
+            N = n()) %>% 
+  ungroup()
+
+# normality is violated
+# H0: The samples come from a normal distribution
+# H1: The samples do not come from a normal distribution
+# p-value < 0.05 (data deviates from normality)
+shapiro.test(df$total_score)
+
+# homogeneity of variances is maintained across L1
+# H0: variances are equal
+# H1: variances are not equal
+# p-value > 0.05 (variances are not significantly different between groups)
+leveneTest(total_score ~ L1, data = df)
+
+# t-test
+# since the central limit theorem is satisfied (n > 30) we will still proceed with parametric tests.
+t.test(df_en$total_score, df_de$total_score, var.equal = TRUE)
+
+# cohen's d
+cohen.d(df_en$total_score, df_de$total_score)
+```
+
+## Condition comparison
+The no PINTs condition has the highest mean total score, while the silence condition has the lowest mean total score. However, an ANOVA shows that there are not significant differences between the conditions when predicting total score.
+```{r}
+df %>% 
+  group_by(condition) %>% 
+  summarize(mean = mean(total_score), 
+            median = median(total_score), 
+            sd = sd(total_score), 
+            N = n()) %>%
+  arrange(desc(mean)) %>% 
+  ungroup()
+
+# normality is violated
+# H0: The samples come from a normal distribution
+# H1: The samples do not come from a normal distribution
+# p-value < 0.05 (data deviates from normality)
+shapiro.test(df$total_score)
+
+# homogeneity of variances is maintained across conditions
+# H0: variances are equal
+# H1: variances are not equal
+# p-value > 0.05 (variances are not significantly different between groups)
+leveneTest(total_score ~ condition, data = df)
+
+# anova for each condition
+summary(aov(total_score ~ condition, data = df))
+```
+
+## Total Score Visualization
+The boxplots and density plots show the distributions of total score based on condition and first language. These visualizations reinforce that there is not significant differences between condition or L1 when predicting a participant's total score.
+```{r}
+# Boxplot
+boxplot(total_score ~ condition, col=c("white","lightgray"), data = df)
+boxplot(total_score ~ L1, col=c("white","lightgray"), data = df)
+
+# Density Plot
+ggplot(data = df, aes(x = total_score, fill = condition)) +
+  geom_density(alpha = 0.3)
+
+ggplot(data = df, aes(x = total_score, fill = L1)) +
+  geom_density(alpha = 0.3)
+```
+
+## Condition and L1 comparison
+Here we find that monolingual English participants scored better than the L1 German participants except for the original condition. Monolingual English participants performed best with the no PINTs condition while the L1 German participants performed best with the original audio condition. 
+```{r}
+df %>% 
+  group_by(condition, L1) %>% 
+  summarize(mean = mean(total_score), 
+            median = median(total_score), 
+            sd = sd(total_score), 
+            N = n()) %>% 
+  arrange(desc(mean)) %>% 
+  ungroup()
+```
+
+## Precede - original and silence condition
+Convert variable to factor.
+```{r}
+df_binomial_all$precede <- as.factor(df_binomial_all$precede)
+```
+
+Participants performed significantly better when critical information was NOT preceded by PINTs information.
+```{r}
+df_binomial_all %>% 
+  group_by(precede) %>% 
+  summarize(mean = mean(score), 
+            median = median(score), 
+            sd = sd(score),
+            count = sum(score == 1),
+            N = n()) %>% 
+  arrange(desc(mean)) %>% 
+  ungroup()
+
+# normality is violated
+# H0: The samples come from a normal distribution
+# H1: The samples do not come from a normal distribution
+# p-value < 0.05 (data deviates from normality)
+shapiro.test(df_binomial_all$score)
+
+# homogeneity of variances is maintained across L1
+# H0: variances are equal
+# H1: variances are not equal
+# p-value < 0.05 (variances are significantly different between groups)
+leveneTest(score ~ precede, data = df_binomial_all)
+
+# Wilcoxon rank-sum test
+# since both normality and equal variances is violated a non-parametric test is used
+precede_yes_group <- subset(df_binomial_all, precede == "yes")
+precede_no_group <- subset(df_binomial_all, precede == "no")
+wilcox.test(precede_no_group$score, precede_yes_group$score)
+```
+
+## Correlation
+When looking at correlations for participant's total score we see that the age and interest of the participant have no correlation with total score. The correlations between ease of listening and perceived preparedness of the speaker are significant and weakly correlated with total score.
+```{r}
+df_cor <- df[, c(3,4,5,8,11)]
+cor(df_cor)
+cor.test(df_cor$total_score, df_cor$ease)
+cor.test(df_cor$total_score, df_cor$prep)
+```
+
+## Ease
+Participant's reported how easy it was to follow/understand the speaker (1: very difficult and 5: very easy). Overall, the mean ease is 2.82.
+```{r}
+# ease score in general
+df %>% 
+  summarize(mean_ease = mean(ease), 
+            median_ease = median(ease), 
+            sd_ease = sd(ease))
+```
+
+## Ease by L1
+When grouping ease by L1 we find that monolingual English listeners overall found the speaker easier to understand than the L1 German listeners. However, the difference is not statistically significant
+```{r}
+# ease per L1
+df %>% 
+  group_by(L1) %>% 
+  summarize(mean_ease = mean(ease),
+            sd_ease = sd(ease)) %>%
+  arrange(desc(mean_ease)) %>% 
+  ungroup()
+
+# normality is violated
+# H0: The samples come from a normal distribution
+# H1: The samples do not come from a normal distribution
+# p-value < 0.05 (data deviates from normality)
+shapiro.test(df$ease)
+
+# homogeneity of variances is maintained across L1
+# H0: variances are equal
+# H1: variances are not equal
+# p-value > 0.05 (variances are not significantly different between groups)
+leveneTest(ease ~ L1, data = df)
+
+# t-test
+# since the central limit theorem is satisfied (n > 30) we will still proceed with parametric tests.
+t.test(df_en$ease, df_de$ease, var.equal = TRUE)
+
+# cohen's d
+cohen.d(df_en$ease, df_de$ease)
+```
+
+## Ease by condtion
+When grouping by condition we found that the condition that removed all the pause material was considered the easiest to follow. However, the differences between condition were not statistically significant. This finding is nonetheless interesting since deleting this material created artifacts within the audio. The original, unmanipulated version was found to be the most difficult to follow, possibly because this speaker uses a high frequency of PINTs (~40% of their total speaking time).
+```{r}
+# ease per condition
+df %>% 
+  group_by(condition) %>% 
+  summarize(mean_ease = mean(ease)) %>%
+  arrange(desc(mean_ease)) %>% 
+  ungroup()
+
+# normality is violated
+# H0: The samples come from a normal distribution
+# H1: The samples do not come from a normal distribution
+# p-value < 0.05 (data deviates from normality)
+shapiro.test(df$ease)
+
+# homogeneity of variances is maintained across conditions
+# H0: variances are equal
+# H1: variances are not equal
+# p-value > 0.05 (variances are not significantly different between groups)
+leveneTest(ease ~ condition, data = df)
+
+# anova for each condition
+summary(aov(ease ~ condition, data = df))
+```
+
+## Ease grouped by condition and L1
+When looking at ease grouped by both condition and L1 we find some interesting trends. The monolingual English listeners find the version without PINTs to be the easiest while the L1 German listeners find the original, unmodified version, to be the easiest to follow. Overall, this indicates the complex confluence of factors that effect the ease of listening. 
+```{r}
+# ease grouped by condition and L1
+df %>% 
+  group_by(condition, L1) %>% 
+  summarize(mean_ease = mean(ease)) %>% 
+  arrange(desc(mean_ease)) %>% 
+  ungroup()
+```
+
+## Modeling
+Converting variables to factors.
+```{r}
+# convert to factors
+df$ease <- as.factor(df$ease)
+df$prep <- as.factor(df$prep)
+df$edu <- as.factor(df$edu)
+df$self <- as.factor(df$self)
+df$test <- as.factor(df$test)
+
+df_de$ease <- as.factor(df_de$ease)
+df_de$prep <- as.factor(df_de$prep)
+df_de$edu <- as.factor(df_de$edu)
+df_de$self <- as.factor(df_de$self)
+df_de$test <- as.factor(df_de$test)
+
+df_en$ease <- as.factor(df_en$ease)
+df_en$prep <- as.factor(df_en$prep)
+df_en$edu <- as.factor(df_en$edu)
+df_en$self <- as.factor(df_en$self)
+df_en$test <- as.factor(df_en$test)
+
+df_binomial_all$id <- as.factor(df_binomial_all$id)
+df_binomial_all$condition <- as.factor(df_binomial_all$condition)
+df_binomial_all$ease <- as.factor(df_binomial_all$ease)
+df_binomial_all$prep <- as.factor(df_binomial_all$prep)
+df_binomial_all$edu <- as.factor(df_binomial_all$edu)
+df_binomial_all$L1 <- as.factor(df_binomial_all$L1)
+df_binomial_all$self <- as.factor(df_binomial_all$self)
+df_binomial_all$test <- as.factor(df_binomial_all$test)
+df_binomial_all$question <- as.factor(df_binomial_all$question)
+```
+
+### Linear Regression: All data
+#### Checking assumption
+The shapiro test indicates that our data does not come a normal distribution. Since the central limit theorem is satisfied (n > 30) we will still proceed with parametric tests. 
+```{r}
+# Checking Assumptions 
+qqnorm(df$total_score, col = "darkred", main = "Title")
+qqline(df$total_score, col = "darkgrey", lwd = 3)
+
+# H0: The samples come from a normal distribution
+# H1: The samples do not come from a normal distribution
+# p-value < .05.Data deviates from normality
+shapiro.test(df$total_score)
+```
+
+#### Model information
+Linear regression models were tested, with interaction between fixed effects producing a worse fit. Linear regression was chosen because there was only a single data point per participant so it wasn't possible to have participant as a random effect. The model with best fit (lowest AIC score) is the model which predicts total score with ease as the only fixed effect. Looking at the summary we find significant effects for ease2, ease4, and ease5. This indicates that the easier the participants found the speaker the higher their total score. Importantly, an ease score of 5 improves the score more than an ease score of 4 which improves more than ease score of 2. Only the ease score of 3 does not follow this trend. A possible explanation is that the participants who didn't have strong feelings in either direction might have selected the middle score.
+```{r}
+model0 <- lm(total_score ~ condition, data = df)
+model1 <- lm(total_score ~ L1, data = df)
+model2 <- lm(total_score ~ ease, data = df)
+model3 <- lm(total_score ~ prep, data = df)
+AIC(model0, model1, model2, model3)
+summary(model2)
+```
+
+### Binomial Models: All Data
+#### Checking assumption
+The shapiro test indicates that our data does not come a normal distribution. Since the central limit theorem is satisfied (n > 30) we will still proceed with parametric tests. 
+```{r}
+# Checking Assumptions 
+qqnorm(df_binomial_all$score, col = "darkred", main = "Title")
+qqline(df_binomial_all$score, col = "darkgrey", lwd = 3)
+
+# H0: The samples come from a normal distribution
+# H1: The samples do not come from a normal distribution
+# p-value < .05.Data deviates from normality
+shapiro.test(df_binomial_all$score)
+```
+
+#### Model information
+Binomial generalized linear mixed models (binomial GLMMs) were tested. Models with interaction between fixed effects produced a worse fit. The model with best fit (lowest AIC score) is the model which predicts score (by-question) with precede as the only fixed effect and subject id with intercept as a random effect. We found a significant effect for precedeyes with the estimate representing the log-odds ratio of a positive score when the critical information is preceded by PINTs (compared to when the critical information is not preceded by PINTs). Simply, when critical information for the question is preceded by PINTs, then the participant was more likely to get the question wrong.
+```{r}
+model_binomial0 <- glmer(score ~ L1 + (1 | id), data = df_binomial_all, family = binomial)
+model_binomial1 <- glmer(score ~ condition + (1 | id), data = df_binomial_all, family = binomial)
+model_binomial2 <- glmer(score ~ precede + (1 | id), data = df_binomial_all, family = binomial)
+model_binomial3 <- glmer(score ~ ease + (1 | id), data = df_binomial_all, family = binomial)
+model_binomial4 <- glmer(score ~ prep + (1 | id), data = df_binomial_all, family = binomial)
+AIC(model_binomial0, model_binomial1, model_binomial2, model_binomial3, model_binomial4)
+summary(model_binomial2)
+```
