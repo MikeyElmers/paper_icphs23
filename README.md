@@ -55,6 +55,8 @@ The following PINTs are investigated:
 │   │ └── ns
 │   │     ├── sessions.csv
 │   │     └── trials.csv
+└── working
+│   └── info.txt
 ├── docs
 │   ├── elmers_icphs23_paper.pdf
 │   └── elmers_icphs23_poster.pdf
