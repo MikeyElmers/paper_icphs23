@@ -6,7 +6,9 @@ scripts/00_test.R
 scripts/00_renvSnapshot.R
 scripts/00_sessionInfo.R
 scripts/03_temp.Rmd
-data/working/
+data/working/data_binomial.csv
+data/working/data_nns.csv
+data/working/data_ns.csv
 cmake-3.20.2
 .Rdata
 .httr-oauth
