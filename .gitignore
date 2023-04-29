@@ -5,6 +5,9 @@
 scripts/00_test.R
 scripts/00_renvSnapshot.R
 scripts/00_sessionInfo.R
+scripts/03_temp.Rmd
+data/working/
+cmake-3.20.2
 .Rdata
 .httr-oauth
 .DS_Store
