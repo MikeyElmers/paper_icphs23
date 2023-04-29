@@ -30,7 +30,7 @@ The following PINTs are investigated:
    https://github.com/MikeyElmers/paper_icphs23.git
    cd paper_icphs23/
    ```
-2. Plots, Rmarkdown documents, and the sessionInfo are located in `output/`.
+2. Rmarkdown documents and the sessionInfo are located in `output/`.
 
 3. If you would like to re-run the entire analysis: 
     + NOTE: This will delete all the data from the `data/final/` as well as everything in `output/` except for sessionInfo.txt to run the pipeline from scratch. 
@@ -83,7 +83,6 @@ The following PINTs are investigated:
 ### `output`
 - `02_analysis.html`: Output of analysis.Rmd file
 - `sessionInfo.txt`: R session info
-
 
 ### `scripts`
 - `00_renvRestore.R`: Restores project dependencies
