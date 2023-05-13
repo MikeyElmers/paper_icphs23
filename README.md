@@ -1,7 +1,7 @@
 [![orcid](https://img.shields.io/badge/ORCID-0000--0002--3929--788X-green?style=plastic&logo=orcid&url=https://orcid.org/0000-0002-3929-788X)](https://orcid.org/0000-0002-3929-788X)
 
 # Pause particles influencing recollection in lectures
-This repository contains the data and code for "Pause particles influencing recollection in lectures" by Mikey Elmers for the 20th International Congress of Phonetic Sciences (ICPhS '23), Prague, August 7-11. This project investigates the effect of pause-internal particles particles (PINTs) on recall in a listening experiment.
+This repository contains the data and code for "Pause particles influencing recollection in lectures" by Mikey Elmers for the 20th International Congress of Phonetic Sciences (ICPhS '23), Prague, August 7-11. This project investigates the effect of pause-internal phonetic particles (PINTs) on recall in a listening experiment.
 
 The following PINTs are investigated: 
 
