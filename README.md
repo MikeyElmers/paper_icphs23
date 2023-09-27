@@ -48,15 +48,13 @@ The following PINTs are investigated:
 │   │   ├── data_de.csv
 │   │   ├── data_en.csv
 │   │   └── data_full.csv
-│   ├── raw
-│   │ ├── nns
-│   │ │   ├── sessions.csv
-│   │ │   └── trials.csv
-│   │ └── ns
-│   │     ├── sessions.csv
-│   │     └── trials.csv
-└── working
-│   └── info.txt
+│   └── raw
+│     ├── nns
+│     │   ├── sessions.csv
+│     │   └── trials.csv
+│     └── ns
+│         ├── sessions.csv
+│         └── trials.csv
 ├── docs
 │   ├── elmers_icphs23_paper.pdf
 │   └── elmers_icphs23_poster.pdf
