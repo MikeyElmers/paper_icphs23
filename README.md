@@ -20,6 +20,7 @@ The following PINTs are investigated:
     * [docs](#docs)
     * [output](#output)
     * [scripts](#scripts)
+- [Citation](#citation)
 - [Issues/comments/suggestions](#issuescommentssuggestions)
 - [License](#license)
 - [References](#references)
@@ -88,6 +89,20 @@ The following PINTs are investigated:
 - `00_renvRestore.R`: Restores project dependencies
 - `01_clean.R`: Cleans and exports final data
 - `02_analysis.Rmd`: Descriptive and inferential data analysis
+
+## Citation
+If you use this data or code for you work, please cite as:
+```bibtex
+@inproceedings{elmersicphs23,
+    title={Pause particles influencing recollection in lectures},
+    author={Elmers, Mikey},
+    booktitle={Proceedings of the 20th International Congress of Phonetic Sciences (ICPhS '23)},
+    address={Prague},
+    year={2023},
+    pages={37--41},
+    url={https://guarant.cz/icphs2023/85.pdf}
+}
+```
 
 ## Issues/Comments/Suggestions
 Please use the [issue tracker](https://github.com/MikeyElmers/paper_icphs23/issues).
